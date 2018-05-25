@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm http://xmlns.jcp.org/xml/ns/persistence/orm_2_1.xsd"
+	version="2.1">
+
+	<entity class="org.clover.zojirushi.entity.UserEntity"
+		name="UserEntity">
+		<attributes>
+			<id name="id">
+				<column name="id" />
+				<generated-value strategy="SEQUENCE"
+					generator="UserEntitySequenceGenerator" />
+				<sequence-generator name="UserEntitySequenceGenerator"
+					sequence-name="USERS_S" allocation-size="1" />
+			</id>
+		</attributes>
+	</entity>
+
+	<entity class="org.clover.zojirushi.entity.ApplicationEntity"
+		name="ApplicationEntity">
+		<attributes>
+			<id name="id">
+				<column name="id" />
+				<generated-value strategy="SEQUENCE"
+					generator="ApplicationEntitySequenceGenerator" />
+				<sequence-generator name="ApplicationEntitySequenceGenerator"
+					sequence-name="APPLICATIONS_S" allocation-size="1" />
+			</id>
+		</attributes>
+	</entity>
+
+	<entity class="org.clover.zojirushi.entity.PrivilegeEntity"
+		name="PrivilegeEntity">
+		<attributes>
+			<id name="id">
+				<column name="id" />
+				<generated-value strategy="SEQUENCE"
+					generator="PrivilegeEntitySequenceGenerator" />
+				<sequence-generator name="PrivilegeEntitySequenceGenerator"
+					sequence-name="PRIVILEGES_S" allocation-size="1" />
+			</id>
+		</attributes>
+	</entity>
+
+	<entity class="org.clover.zojirushi.entity.RoleEntity"
+		name="RoleEntity">
+		<attributes>
+			<id name="id">
+				<column name="id" />
+				<generated-value strategy="SEQUENCE"
+					generator="RoleEntitySequenceGenerator" />
+				<sequence-generator name="RoleEntitySequenceGenerator"
+					sequence-name="ROLES_S" allocation-size="1" />
+			</id>
+		</attributes>
+	</entity>
+
+	<entity class="org.clover.zojirushi.entity.OperationEntity"
+		name="OperationEntity">
+		<attributes>
+			<id name="id">
+				<column name="id" />
+				<generated-value strategy="SEQUENCE"
+					generator="OperationEntitySequenceGenerator" />
+				<sequence-generator name="OperationEntitySequenceGenerator"
+					sequence-name="OPERATIONS_S" allocation-size="1" />
+			</id>
+		</attributes>
+	</entity>
+
+	<entity class="org.clover.zojirushi.entity.InstitutionEntity"
+		name="InstitutionEntity">
+		<attributes>
+			<id name="id">
+				<column name="id" />
+				<generated-value strategy="SEQUENCE"
+					generator="InstitutionEntitySequenceGenerator" />
+				<sequence-generator name="InstitutionEntitySequenceGenerator"
+					sequence-name="INSTITUTIONS_S" allocation-size="1" />
+			</id>
+		</attributes>
+	</entity>
+
+	<entity class="org.clover.zojirushi.entity.StaffEntity"
+		name="StaffEntity">
+		<attributes>
+			<id name="id">
+				<column name="id" />
+				<generated-value strategy="SEQUENCE"
+					generator="StaffEntitySequenceGenerator" />
+				<sequence-generator name="StaffEntitySequenceGenerator"
+					sequence-name="STAFFS_S" allocation-size="1" />
+			</id>
+		</attributes>
+	</entity>
+
+</entity-mappings>
+

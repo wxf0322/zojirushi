@@ -1,0 +1,20 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure id="h2db" class="org.eclipse.jetty.webapp.WebAppContext">
+    <New id="DSTest" class="org.eclipse.jetty.plus.jndi.Resource">
+        <Arg>jdbc/oracle</Arg>
+        <Arg>
+            <New class="com.jolbox.bonecp.BoneCPDataSource">
+                <Set name="driverClass">oracle.jdbc.OracleDriver</Set>
+                <Set name="jdbcUrl">jdbc:oracle:thin:@10.32.112.35:1521/jwpt</Set>
+                <Set name="username">zojirushi</Set>
+                <Set name="password">zojirushi</Set>
+                <Set name="minConnectionsPerPartition">10</Set>
+                <Set name="maxConnectionsPerPartition">500</Set>
+                <Set name="acquireIncrement">10</Set>
+                <Set name="idleConnectionTestPeriod">30</Set>
+            </New>
+        </Arg>
+    </New>
+</Configure>

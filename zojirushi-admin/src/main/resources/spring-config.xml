@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+          http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="locations">
+            <list>
+                <value>classpath:resources.properties</value>
+                <value>classpath:redis.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 扫描注解Bean -->
+    <context:component-scan base-package="org.clover.zojirushi">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- Alibaba Datasource -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="10"/>
+        <property name="minIdle" value="10"/>
+        <property name="maxActive" value="700"/>
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="2000"/>
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="30000"/>
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="60000"/>
+        <!--检测连接是否有效sql-->
+        <property name="validationQuery" value="SELECT 'x' FROM DUAL"/>
+        <!--申请连接时检测，不影响性能，并保证安全性-->
+        <property name="testWhileIdle" value="true"/>
+        <!--申请连接时执行sql检测连接是否有效，降低性能-->
+        <property name="testOnBorrow" value="false"/>
+        <!--归还连接时执行sql检测连接是否有效，降低性能-->
+        <property name="testOnReturn" value="false"/>
+        <!--是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。在mysql下建议关闭。-->
+        <property name="poolPreparedStatements" value="false"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="-1"/>
+        <property name="filters" value="stat"/>
+        <property name="asyncInit" value="true" />
+    </bean>
+
+    <!-- Datasource 2 -->
+    <bean id="dataSource2" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName.2}"/>
+        <property name="url" value="${jdbc.url.2}"/>
+        <property name="username" value="${jdbc.username.2}"/>
+        <property name="password" value="${jdbc.password.2}"/>
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="10"/>
+        <property name="minIdle" value="10"/>
+        <property name="maxActive" value="700"/>
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="2000"/>
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="30000"/>
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="60000"/>
+        <!--检测连接是否有效sql-->
+        <property name="validationQuery" value="SELECT 'x' FROM DUAL"/>
+        <!--申请连接时检测，不影响性能，并保证安全性-->
+        <property name="testWhileIdle" value="true"/>
+        <!--申请连接时执行sql检测连接是否有效，降低性能-->
+        <property name="testOnBorrow" value="false"/>
+        <!--归还连接时执行sql检测连接是否有效，降低性能-->
+        <property name="testOnReturn" value="false"/>
+        <!--是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。在mysql下建议关闭。-->
+        <property name="poolPreparedStatements" value="false"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="-1"/>
+        <property name="filters" value="stat"/>
+        <property name="asyncInit" value="true" />
+    </bean>
+
+    <!-- 编写spring 配置文件的配置多数源映射关系 -->
+    <bean class="org.clover.zojirushi.util.DynamicDataSource" id="dynamicDataSource">
+        <property name="targetDataSources">
+            <map key-type="java.lang.String">
+                <entry value-ref="dataSource" key="dataSource"></entry>
+                <entry value-ref="dataSource2" key="dataSource2"></entry>
+            </map>
+        </property>
+        <property name="defaultTargetDataSource" ref="dataSource">
+        </property>
+    </bean>
+
+    <bean id="dataSourceExchange" class="org.clover.zojirushi.util.DataSourceAspect"/>
+
+    <!-- EntityManagerFactory取代Hibernate的sessionFactory -->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="packagesToScan" value="org.clover.zojirushi.entity"/>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"></bean>
+        </property>
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+                <prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>jpa/entity-mapping.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 指定jpa基于Hibernate实现 -->
+    <bean id="jpaDialect" class="org.springframework.orm.jpa.vendor.HibernateJpaDialect"/>
+
+    <!-- 配置事务增强处理Bean，指定事务管理器，取代Hibernate的事务管理 -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+        <property name="dataSource" ref="dynamicDataSource" />
+    </bean>
+
+    <!--<bean id="txManager"-->
+          <!--class="org.springframework.jdbc.datasource.DataSourceTransactionManager">-->
+        <!--<property name="dataSource" ref="dynamicDataSource" />-->
+    <!--</bean>-->
+
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!-- 对add、update、delete的方法进行事务-->
+            <tx:method name="*InTrasaction" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+            <tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+            <!-- 对剩余的方法进行事务-->
+            <tx:method name="*" propagation="NOT_SUPPORTED"
+                       read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <aop:pointcut id="transactionPointCut" expression="execution(* org.clover.zojirushi.dao.*.*(..))" />
+        <aop:advisor pointcut-ref="transactionPointCut"
+                     advice-ref="txAdvice" order="2" />
+        <aop:advisor advice-ref="dataSourceExchange" pointcut-ref="transactionPointCut" order="1"/>
+    </aop:config>
+
+    <!-- 启动注解事务 -->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+    <!-- spring data jpa 扫描的包-->
+    <jpa:repositories base-package="org.clover.zojirushi"/>
+
+    <import resource="classpath:spring-cache.xml"/>
+    <import resource="classpath:spring-redis.xml"/>
+    <import resource="classpath:spring-shiro.xml"/>
+    <import resource="classpath:spring-scheduling.xml"/>
+
+</beans>

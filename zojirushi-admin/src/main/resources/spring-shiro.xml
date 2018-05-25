@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"></bean>
+
+    <!-- 缓存管理 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager"></bean>
+
+    <!-- 自定义权限范围 -->
+    <bean id="userRealm" class="org.clover.zojirushi.interceptor.auth.UserRealm"></bean>
+
+    <!-- Shiro安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="userRealm"></property>
+        <property name="cacheManager" ref="cacheManager"></property>
+        <property name="sessionManager" ref="sessionManager"></property>
+        <property name="rememberMeManager" ref="rememberMeManager"></property>
+    </bean>
+
+    <!--
+     Shiro主过滤器本身功能十分强大，其强大之处就在于它支持任何基于URL路径表达式的、自定义的过滤器的执行Web应用中，
+     Shiro可控制的Web请求必须经过Shiro主过滤器的拦截，Shiro对基于Spring的Web应用提供了完美的支持
+     -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- Shiro的核心安全接口，这个属性是必须的 -->
+        <property name="securityManager" ref="securityManager"></property>
+        <!-- 要求登录时的链接(可根据项目的URL进行替换)，非必须的属性，默认会自动寻找Web工程根目录下的"/login.jsp"页面 -->
+        <property name="loginUrl" value="/"/>
+        <!-- 用户访问未对其授权的资源时，所显示的连接 -->
+        <property name="unauthorizedUrl" value="/"></property>
+        <!-- Shiro连接约束配置,即过滤链的定义 -->
+        <!-- 此处可配合这篇文章来理解各个过滤连的作用http://blog.csdn.net/jadyer/article/details/12172839 -->
+        <!-- 下面value值的第一个'/'代表的路径是相对于HttpServletRequest.getContextPath()的值来的 -->
+        <!-- anon：它对应的过滤器里面是空的，什么都没做，这里.do和.jsp后面的*表示参数，比方说login.jsp?main这种 -->
+        <!-- authc：该过滤器下的页面必须验证后才能访问，它是Shiro内置的一个拦截器org.apache.shiro.web.filter.authc.FormAuthenticationFilter -->
+        <property name="filterChainDefinitions">
+            <value>
+                /* = anon
+                /logout = logout
+                <!--/** = user-->
+            </value>
+        </property>
+    </bean>
+
+    <!-- 定义Session ID生成管理器 -->
+    <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
+
+    <!-- 配置Session DAO的操作处理 -->
+    <bean id="sessionDAO" class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
+        <!-- 定义该Session DAO操作中所使用的ID生成器 -->
+        <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
+    </bean>
+
+    <bean id="shiroSecurityHelper" class="org.clover.zojirushi.interceptor.auth.ShiroSecurityHelper">
+        <property name="sessionDAO" ref="sessionDAO"></property>
+    </bean>
+
+    <!-- 配置需要向Cookie中保存数据的配置模版 -->
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!-- 在Tomcat运行下默认使用的Cookie的名字为JSESSIONID -->
+        <constructor-arg value="mldn-session-id"/>
+        <!-- 保证该系统不会受到跨域的脚本操作攻击 -->
+        <property name="httpOnly" value="true"/>
+        <!-- 定义Cookie的过期时间，单位为秒，如果设置为-1表示浏览器关闭，则Cookie消失 28800 -->
+        <property name="maxAge" value="-1"/>
+    </bean>
+
+    <bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <constructor-arg value="rememberMe"/>
+        <property name="httpOnly" value="true"/>
+        <property name="maxAge" value="2592000"/><!-- 30天 -->
+    </bean>
+
+    <!-- rememberMe管理器 -->
+    <bean id="rememberMeManager"
+          class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+        <property name="cipherKey" value="#{T(org.apache.shiro.codec.Base64).decode('4AvVhmFLUs0KTA3Kprsdag==')}"/>
+        <property name="cookie" ref="rememberMeCookie"/>
+    </bean>
+
+    <!-- 定义会话管理器的操作 -->
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <!-- 定义的是全局的session会话超时时间，此操作会覆盖web.xml文件中的超时时间配置，单位毫秒 -->
+        <property name="globalSessionTimeout" value="28800000"/>
+        <!-- 删除所有无效的Session对象，此时的session被保存在了内存里面 -->
+        <property name="deleteInvalidSessions" value="true"/>
+        <!-- 需要让此session可以使用该定时调度器进行检测 -->
+        <property name="sessionValidationSchedulerEnabled" value="true"/>
+        <!-- 定义Session可以进行序列化的工具类 -->
+        <property name="sessionDAO" ref="sessionDAO"/>
+        <!-- 所有的session一定要将id设置到Cookie之中，需要提供有Cookie的操作模版 -->
+        <property name="sessionIdCookie" ref="sessionIdCookie"/>
+        <!-- 定义sessionIdCookie模版可以进行操作的启用 -->
+        <property name="sessionIdCookieEnabled" value="true"/>
+    </bean>
+</beans>
