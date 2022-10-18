@@ -22,7 +22,7 @@
         <spring-data.version>2.0.7.RELEASE</spring-data.version>
         <hibernate.version>5.3.0.Final</hibernate.version>
         <hibernate-jpa.version>1.0.2.Final</hibernate-jpa.version>
-        <jackson.version>2.9.5</jackson.version>
+        <jackson.version>2.13.4.1</jackson.version>
         <project.jetty.xml>${project.basedir}/src/test/resources/jetty.xml</project.jetty.xml>
     </properties>
     <build>
